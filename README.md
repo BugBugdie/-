@@ -33,11 +33,29 @@
     1.数据层面，增加量少类别的样本（转译，同义词替换，LLM做相同语义文本生成），量多类别样本欠采样。
     2.模型层面，损失函数可以改为带权重的交叉熵损失
     3.评估指标，关注较少类别的召回率（所有该类别的样本，被正确找出来的比例）
-### 9.负采样怎么做？可以用fasttext的负采样举例
-    负采样是一种用于词嵌入模型训练的采样方式，使用softmax进行全词表的计算时，计算量很大。
+### 9.负采样怎么做？可以用fasttext或word2vec的负采样举例
+    负采样是一种用于词嵌入模型训练的采样方式，如果使用softmax进行全词表的计算，计算量很大。因此只使用正样本和采样的几个负样本计算损失，更新他们的权重。
+    采样方式：随机或者按词频分布以一定概率采样
 ### 10.你的强化学习DPO是怎么训练的？为什么不用PPO？
+    1.数据，一个input对应一个chosen和一个reject；来源是推理产生的Badcase作为reject，人工修改后的座位chosen；数据量5k；
+    2.模型,策略模型Policy和参照模型Reference,Policy参与训练，Reference参数固定
+    3.损失，Policy输出chosen和reject的logits_prob之差作为Policy得分,Ref输出chosen和reject的logits_prob之差作为Ref得分,loss = -logsigmoid(系数β * （Pilicy得分-Ref得分）
+    4.参数，epoch=1，学习率1e-5, β=0.1
+
+    PPO需要用到4个模型，显存开销大于DPO，以训练过程不稳定和效果不稳定著称；
+    PPO的Reward-model难训练，而DPO也能起效果，从结果论上选择DPO
 
 ### 11.GLM,Baichuan,Qwen,LLama这些模型哪个更好用，你怎么评估哪个更好用的，他们的结构说一下。
+    开源时间从开始的LLama到GLM，再到Baichuan，Qwen。后出来的会比先出来的好用，目前感觉第一梯队是GLM4，Qwen
+
+    评估模型：
+        1.针对专利和期刊中的高频技术词进行提问，判断模型训练数据是否包含该知识点
+        2.采用prompt或few-shot方式，引导模型按指令要求输出，判断模型对指令的遵循能力
+        3.同样数据sft之后的模型，人工对其输出进行评估
+
+    模型结构：
+        
+
 
 ### 12.Batch-Norm和Layer-Norm的区别，为什么CV用BN，NLP用LN？
 
